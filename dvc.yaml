@@ -1,0 +1,13 @@
+stages:
+  download:
+    cmd: python -m src.data.download
+    deps:
+      - src/data/download.py
+    params:
+      - configs/config.yaml:
+          - data.symbols
+          - data.start_date
+          - data.end_date
+    outs:
+      - data/raw:
+          persist: true
