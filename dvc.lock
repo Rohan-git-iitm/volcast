@@ -21,3 +21,25 @@ stages:
       md5: c0e543a478af05dd32b50d98e9147d72.dir
       size: 4329684166
       nfiles: 276
+  bars:
+    cmd: python -m src.data.bars
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: c0e543a478af05dd32b50d98e9147d72.dir
+      size: 4329684166
+      nfiles: 276
+    - path: src/data/bars.py
+      hash: md5
+      md5: 1a6ed481d9fadb6196824aa30d1d76df
+      size: 3992
+    outs:
+    - path: data/bars
+      hash: md5
+      md5: 77bb180b7396efaf877433c92f87288c.dir
+      size: 25706434
+      nfiles: 1104
+    - path: metrics/bars.json
+      hash: md5
+      md5: 4b62a5dc091b83f6cd2b6f423e11772a
+      size: 112

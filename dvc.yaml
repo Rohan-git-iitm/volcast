@@ -11,3 +11,14 @@ stages:
     outs:
       - data/raw:
           persist: true
+  bars:
+    cmd: python -m src.data.bars
+    deps:
+      - src/data/bars.py
+      - data/raw
+    outs:
+      - data/bars:
+          persist: true
+    metrics:
+      - metrics/bars.json:
+          cache: false
