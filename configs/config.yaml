@@ -1,0 +1,25 @@
+data:
+  symbols: [BTCUSDT, ETHUSDT, SOLUSDT]
+  start_date: "2026-07-01"
+  end_date: "2026-09-30"
+  base_url: "https://data.binance.vision/data/spot/daily/trades"
+  raw_dir: data/raw
+  bars_dir: data/bars
+  features_dir: data/features
+
+spark:
+  master: "local[*]"
+  driver_memory: "3g"
+  local_ip: "127.0.0.1"
+
+model:
+  horizon_minutes: 60
+  test_days: 14
+
+mlflow:
+  tracking_uri: "sqlite:///mlflow.db"
+  experiment: volcast
+
+logging:
+  dir: logs
+  level: INFO
