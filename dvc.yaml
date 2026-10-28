@@ -11,11 +11,30 @@ stages:
     outs:
       - data/raw:
           persist: true
+
+  thresholds:
+    cmd: python -m src.data.thresholds
+    deps:
+      - src/data/thresholds.py
+      - src/data/trades.py
+      - src/utils/spark.py
+      - data/raw
+    params:
+      - configs/config.yaml:
+          - data.large_trade_quantile
+          - data.threshold_days
+    outs:
+      - artifacts/thresholds.json:
+          cache: false
+
   bars:
     cmd: python -m src.data.bars
     deps:
       - src/data/bars.py
+      - src/data/trades.py
+      - src/utils/spark.py
       - data/raw
+      - artifacts/thresholds.json
     outs:
       - data/bars:
           persist: true

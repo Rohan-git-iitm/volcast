@@ -24,6 +24,10 @@ stages:
   bars:
     cmd: python -m src.data.bars
     deps:
+    - path: artifacts/thresholds.json
+      hash: md5
+      md5: 30a0c8cac979ec057b040aa384a498f7
+      size: 73
     - path: data/raw
       hash: md5
       md5: c0e543a478af05dd32b50d98e9147d72.dir
@@ -31,15 +35,52 @@ stages:
       nfiles: 276
     - path: src/data/bars.py
       hash: md5
-      md5: 1a6ed481d9fadb6196824aa30d1d76df
-      size: 3992
+      md5: b15ada739c0df284588e37bcc2868972
+      size: 3609
+    - path: src/data/trades.py
+      hash: md5
+      md5: d6dd3e0dba7637e2c0db60fc2d6015b2
+      size: 792
+    - path: src/utils/spark.py
+      hash: md5
+      md5: 91d79cee5a6eb8cfdfc77b8bd3f87a51
+      size: 551
     outs:
     - path: data/bars
       hash: md5
-      md5: 77bb180b7396efaf877433c92f87288c.dir
-      size: 25706434
+      md5: 2c0fe160ef3f1fe8574bb57a611b9e15.dir
+      size: 32670205
       nfiles: 1104
     - path: metrics/bars.json
       hash: md5
-      md5: 4b62a5dc091b83f6cd2b6f423e11772a
+      md5: 4433f19ad94ec4a463d3e828beb82404
       size: 112
+  thresholds:
+    cmd: python -m src.data.thresholds
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: c0e543a478af05dd32b50d98e9147d72.dir
+      size: 4329684166
+      nfiles: 276
+    - path: src/data/thresholds.py
+      hash: md5
+      md5: 92dafccfd24cf14aecaabf9ee6617644
+      size: 1271
+    - path: src/data/trades.py
+      hash: md5
+      md5: d6dd3e0dba7637e2c0db60fc2d6015b2
+      size: 792
+    - path: src/utils/spark.py
+      hash: md5
+      md5: 91d79cee5a6eb8cfdfc77b8bd3f87a51
+      size: 551
+    params:
+      configs/config.yaml:
+        data.large_trade_quantile: 0.99
+        data.threshold_days: 7
+    outs:
+    - path: artifacts/thresholds.json
+      hash: md5
+      md5: 30a0c8cac979ec057b040aa384a498f7
+      size: 73

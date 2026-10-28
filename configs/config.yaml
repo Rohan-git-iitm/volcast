@@ -6,7 +6,10 @@ data:
   raw_dir: data/raw
   bars_dir: data/bars
   features_dir: data/features
-
+  large_trade_quantile: 0.99
+  threshold_days: 7
+  thresholds_path: artifacts/thresholds.json
+  
 spark:
   master: "local[*]"
   driver_memory: "3g"
