@@ -84,3 +84,28 @@ stages:
       hash: md5
       md5: 30a0c8cac979ec057b040aa384a498f7
       size: 73
+  features:
+    cmd: python -m src.features.make_features
+    deps:
+    - path: data/bars
+      hash: md5
+      md5: 2c0fe160ef3f1fe8574bb57a611b9e15.dir
+      size: 32670205
+      nfiles: 1104
+    - path: src/features/build.py
+      hash: md5
+      md5: dc3ed42633e2ed32ef22da8f437c3e89
+      size: 2062
+    - path: src/features/make_features.py
+      hash: md5
+      md5: 30800a417de3fdf96471378269b46c01
+      size: 1018
+    params:
+      configs/config.yaml:
+        model.horizon_minutes: 60
+    outs:
+    - path: data/features
+      hash: md5
+      md5: 5bd7b652541849aaa5d99d09fc458df5.dir
+      size: 34805808
+      nfiles: 1

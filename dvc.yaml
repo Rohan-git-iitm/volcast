@@ -41,3 +41,15 @@ stages:
     metrics:
       - metrics/bars.json:
           cache: false
+
+  features:
+    cmd: python -m src.features.make_features
+    deps:
+      - src/features/build.py
+      - src/features/make_features.py
+      - data/bars
+    params:
+      - configs/config.yaml:
+          - model.horizon_minutes
+    outs:
+      - data/features
