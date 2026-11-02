@@ -36,10 +36,6 @@ def compute_features(bars: pd.DataFrame, horizon: int = 60) -> pd.DataFrame:
     f["trades_ratio"] = b["trades"].rolling(60).sum() / (b["trades"].rolling(1440).sum() / 24)
     f["taker_buy_ratio"] = b["taker_buy_quote"].rolling(60).sum() / vol_1h
 
-    vol_15m = b["quote_volume"].rolling(15).sum()
-    f["large_share_15m"] = b["large_quote_volume"].rolling(15).sum() / vol_15m
-    f["large_trades_15m"] = b["large_trades"].rolling(15).sum()
-    f["max_trade_15m"] = np.log1p(b["max_trade_quote"].rolling(15).max())
 
     t = pd.to_datetime(f.index, unit="ms", utc=True)
     f["hour"] = t.hour
@@ -52,6 +48,5 @@ def compute_features(bars: pd.DataFrame, horizon: int = 60) -> pd.DataFrame:
 FEATURES = [
     "rv_15m", "rv_1h", "rv_4h", "rv_24h", "range_1h",
     "volume_ratio", "trades_ratio", "taker_buy_ratio",
-    "large_share_15m", "large_trades_15m", "max_trade_15m",
     "hour", "weekday",
 ]

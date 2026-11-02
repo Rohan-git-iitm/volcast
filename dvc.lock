@@ -94,8 +94,8 @@ stages:
       nfiles: 1104
     - path: src/features/build.py
       hash: md5
-      md5: 6f2f2459ce63b295be11807d747df4c9
-      size: 2271
+      md5: 7029254399f7146b68dee9fa579e3ac9
+      size: 1944
     - path: src/features/make_features.py
       hash: md5
       md5: 30800a417de3fdf96471378269b46c01
@@ -106,21 +106,21 @@ stages:
     outs:
     - path: data/features
       hash: md5
-      md5: 5bd7b652541849aaa5d99d09fc458df5.dir
-      size: 34805808
+      md5: 81f4376e6fbc3fc50574cc5f9527802b.dir
+      size: 30060734
       nfiles: 1
   train:
     cmd: python -m src.models.train
     deps:
     - path: data/features
       hash: md5
-      md5: 5bd7b652541849aaa5d99d09fc458df5.dir
-      size: 34805808
+      md5: 81f4376e6fbc3fc50574cc5f9527802b.dir
+      size: 30060734
       nfiles: 1
     - path: src/features/build.py
       hash: md5
-      md5: 6f2f2459ce63b295be11807d747df4c9
-      size: 2271
+      md5: 7029254399f7146b68dee9fa579e3ac9
+      size: 1944
     - path: src/models/train.py
       hash: md5
       md5: 094aa02595e5f608c441cb7ce19f0afa
@@ -136,9 +136,9 @@ stages:
     outs:
     - path: artifacts/train_runs.json
       hash: md5
-      md5: 979b1afb5a26e7f6edb070e676997b76
+      md5: 53462d3467b3850b2c3072c6a0315c14
       size: 150
     - path: metrics/train.json
       hash: md5
-      md5: cd9936d2f13452e3d168dada51b72120
-      size: 362
+      md5: c5046542d4b9036f04b34b3396157e07
+      size: 363
