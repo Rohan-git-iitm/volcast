@@ -30,12 +30,14 @@ def compute_features(bars: pd.DataFrame, horizon: int = 60) -> pd.DataFrame:
     for name, window in [("rv_15m", 15), ("rv_1h", 60), ("rv_4h", 240), ("rv_24h", 1440)]:
         f[name] = realized_vol(r2, window)
     f["range_1h"] = np.log(b["high"].rolling(60).max() / b["low"].rolling(60).min())
+    f["rv_same_hour_yday"] = np.sqrt(r2.rolling(horizon).sum().shift(1440 - horizon))
+    f["vol_ratio_15m_24h"] = f["rv_15m"] / f["rv_24h"]
+    f["vol_ratio_1h_24h"] = f["rv_1h"] / f["rv_24h"]
 
     vol_1h = b["quote_volume"].rolling(60).sum()
     f["volume_ratio"] = vol_1h / (b["quote_volume"].rolling(1440).sum() / 24)
     f["trades_ratio"] = b["trades"].rolling(60).sum() / (b["trades"].rolling(1440).sum() / 24)
     f["taker_buy_ratio"] = b["taker_buy_quote"].rolling(60).sum() / vol_1h
-
 
     t = pd.to_datetime(f.index, unit="ms", utc=True)
     f["hour"] = t.hour
@@ -47,6 +49,7 @@ def compute_features(bars: pd.DataFrame, horizon: int = 60) -> pd.DataFrame:
 
 FEATURES = [
     "rv_15m", "rv_1h", "rv_4h", "rv_24h", "range_1h",
+    "rv_same_hour_yday", "vol_ratio_15m_24h", "vol_ratio_1h_24h",
     "volume_ratio", "trades_ratio", "taker_buy_ratio",
     "hour", "weekday",
 ]

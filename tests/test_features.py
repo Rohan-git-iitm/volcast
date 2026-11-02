@@ -40,3 +40,4 @@ def test_target_is_next_hour_vol():
     r = np.diff(np.log(bars["close"].to_numpy()))
     expected = np.sqrt(np.sum(r[t:t + 60] ** 2))
     assert compute_features(bars, horizon=60)["target"].iloc[t] == pytest.approx(expected)
+
