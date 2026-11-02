@@ -94,8 +94,8 @@ stages:
       nfiles: 1104
     - path: src/features/build.py
       hash: md5
-      md5: dc3ed42633e2ed32ef22da8f437c3e89
-      size: 2062
+      md5: 6f2f2459ce63b295be11807d747df4c9
+      size: 2271
     - path: src/features/make_features.py
       hash: md5
       md5: 30800a417de3fdf96471378269b46c01
@@ -109,3 +109,36 @@ stages:
       md5: 5bd7b652541849aaa5d99d09fc458df5.dir
       size: 34805808
       nfiles: 1
+  train:
+    cmd: python -m src.models.train
+    deps:
+    - path: data/features
+      hash: md5
+      md5: 5bd7b652541849aaa5d99d09fc458df5.dir
+      size: 34805808
+      nfiles: 1
+    - path: src/features/build.py
+      hash: md5
+      md5: 6f2f2459ce63b295be11807d747df4c9
+      size: 2271
+    - path: src/models/train.py
+      hash: md5
+      md5: 094aa02595e5f608c441cb7ce19f0afa
+      size: 6122
+    params:
+      configs/config.yaml:
+        model.lgbm:
+          n_estimators: 500
+          learning_rate: 0.03
+          num_leaves: 31
+          min_child_samples: 200
+        model.test_days: 14
+    outs:
+    - path: artifacts/train_runs.json
+      hash: md5
+      md5: 979b1afb5a26e7f6edb070e676997b76
+      size: 150
+    - path: metrics/train.json
+      hash: md5
+      md5: cd9936d2f13452e3d168dada51b72120
+      size: 362

@@ -9,7 +9,7 @@ data:
   large_trade_quantile: 0.99
   threshold_days: 7
   thresholds_path: artifacts/thresholds.json
-  
+
 spark:
   master: "local[*]"
   driver_memory: "3g"
@@ -18,6 +18,11 @@ spark:
 model:
   horizon_minutes: 60
   test_days: 14
+  lgbm:
+    n_estimators: 500
+    learning_rate: 0.03
+    num_leaves: 31
+    min_child_samples: 200
 
 mlflow:
   tracking_uri: "sqlite:///mlflow.db"

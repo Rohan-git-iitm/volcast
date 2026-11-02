@@ -53,3 +53,20 @@ stages:
           - model.horizon_minutes
     outs:
       - data/features
+
+  train:
+    cmd: python -m src.models.train
+    deps:
+      - src/models/train.py
+      - src/features/build.py
+      - data/features
+    params:
+      - configs/config.yaml:
+          - model.test_days
+          - model.lgbm
+    outs:
+      - artifacts/train_runs.json:
+          cache: false
+    metrics:
+      - metrics/train.json:
+          cache: false

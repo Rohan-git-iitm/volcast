@@ -47,3 +47,11 @@ def compute_features(bars: pd.DataFrame, horizon: int = 60) -> pd.DataFrame:
 
     f["target"] = np.sqrt(r2.rolling(horizon).sum().shift(-horizon))
     return f.replace([np.inf, -np.inf], np.nan)
+
+
+FEATURES = [
+    "rv_15m", "rv_1h", "rv_4h", "rv_24h", "range_1h",
+    "volume_ratio", "trades_ratio", "taker_buy_ratio",
+    "large_share_15m", "large_trades_15m", "max_trade_15m",
+    "hour", "weekday",
+]
