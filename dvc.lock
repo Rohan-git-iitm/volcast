@@ -142,3 +142,28 @@ stages:
       hash: md5
       md5: a2df50e5c8fa0d2173f2fcaad824ea36
       size: 462
+  evaluate:
+    cmd: python -m src.models.evaluate
+    deps:
+    - path: artifacts/train_runs.json
+      hash: md5
+      md5: fe13581f0bc122593ac5598d57152972
+      size: 150
+    - path: data/features
+      hash: md5
+      md5: 9653de7260e1d258c1524cdbd4cdff84.dir
+      size: 40302887
+      nfiles: 1
+    - path: metrics/train.json
+      hash: md5
+      md5: a2df50e5c8fa0d2173f2fcaad824ea36
+      size: 462
+    - path: src/models/evaluate.py
+      hash: md5
+      md5: 6ac1998aa4a733fd6cb7967fd32dcd92
+      size: 3006
+    outs:
+    - path: metrics/evaluate.json
+      hash: md5
+      md5: 2025d4847f4286798968fe69fcb14365
+      size: 238

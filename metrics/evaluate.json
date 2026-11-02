@@ -1,0 +1,9 @@
+{
+  "candidate": "lightgbm",
+  "candidate_qlike": 0.19691491333065872,
+  "persistence_qlike": 0.3190603369461265,
+  "promoted": false,
+  "version": 2,
+  "champion_qlike": 0.19691491333065872,
+  "reason": "does not beat current champion"
+}

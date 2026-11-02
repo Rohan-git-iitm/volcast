@@ -70,3 +70,14 @@ stages:
     metrics:
       - metrics/train.json:
           cache: false
+
+  evaluate:
+    cmd: python -m src.models.evaluate
+    deps:
+      - src/models/evaluate.py
+      - metrics/train.json
+      - artifacts/train_runs.json
+      - data/features
+    metrics:
+      - metrics/evaluate.json:
+          cache: false
