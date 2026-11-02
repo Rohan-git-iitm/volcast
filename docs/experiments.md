@@ -53,3 +53,27 @@ Feature importance (gain) in the absolute variant also ranked all three large-tr
 | + same hour yesterday + ratios | **0.2702** | **0.001528** | **0.7828** |
 
 **Conclusion:** Same-hour-yesterday and the volatility ratios each improved every metric; combined they lower RMSPE by 1.2%, so both were kept. Downside and jump features had no effect. Market features worsened RMSPE by 1.9%: each coin's own volatility already reflects market-wide moves, and features shared identically across coins likely let the model fit training-period market conditions that did not carry over. Adding every group at once performed no better than the base, showing that unhelpful features can cancel out helpful ones. Final feature set: base plus rv_same_hour_yday, vol_ratio_15m_24h, vol_ratio_1h_24h.
+
+## E3: Training loss and model refinements (2 Nov 2026)
+
+**Question:** Can the training loss, a measurement-error feature, or a model ensemble reduce forecast error?
+
+**Setup:** same data, final feature set from E2, same split. QLIKE added as a metric: $y^2/\hat{y}^2 - \ln(y^2/\hat{y}^2) - 1$ on variance, the standard volatility loss, robust to noise in the realized-volatility target (Patton 2011). Variants:
+- Current: LightGBM on log-volatility (squared error)
+- RMSPE-weighted: LightGBM on volatility, rows weighted by $1/y^2$ (targets floored at their 1st percentile)
+- QLIKE-trained: LightGBM gamma objective on variance, equivalent to minimizing QLIKE
+- Realized quarticity: current model plus $RQ = (60/3)\sum r^4$ over the last hour (HARQ idea, Bollerslev, Patton and Quaedvlieg 2016)
+- Ensemble: weighted average of HAR and LightGBM, weight chosen on a validation week (last 7 days of training data)
+
+**Results (test set):**
+
+| Variant | RMSPE | QLIKE | Correlation |
+|---|---|---|---|
+| Current (log target) | 0.2702 | 0.2109 | 0.7828 |
+| RMSPE-weighted | 0.2444 | 0.2637 | 0.7960 |
+| QLIKE-trained | 0.3139 | 0.1969 | 0.7756 |
+| + realized quarticity | 0.2698 | 0.2121 | 0.7821 |
+| LightGBM alone, validation-reduced training | 0.2749 | 0.2153 | 0.7813 |
+| Ensemble (0.9 LightGBM, 0.1 HAR) | 0.2731 | 0.2144 | 0.7819 |
+
+**Conclusion:** Each training loss won its own metric by a wide margin. RMSPE training under-forecasts by design: its optimal forecast is $E[1/y]/E[1/y^2]$, which lies below average volatility, because over-forecasting a calm hour produces a large percentage error. QLIKE training is unbiased for variance (optimal $\hat{y}^2 = E[y^2]$). Since the application warns users about expected price swings, systematic under-forecasting is the most harmful failure, so QLIKE was adopted as the primary metric and LightGBM switched to QLIKE training. RMSPE and correlation are still reported. Realized quarticity had no effect, and the ensemble gained under 1% with a weight of 0.9 on LightGBM, so neither was adopted.

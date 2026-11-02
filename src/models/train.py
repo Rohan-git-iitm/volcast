@@ -36,8 +36,10 @@ def split(df, test_days, horizon):
 
 
 def scores(y, pred):
-    """RMSPE, RMSE and correlation between actual and predicted volatility."""
+    """QLIKE (primary), RMSPE, RMSE and correlation between actual and predicted volatility."""
+    ratio = y ** 2 / pred ** 2
     return {
+        "qlike": float(np.mean(ratio - np.log(ratio) - 1)),
         "rmspe": float(np.sqrt(np.mean(((y - pred) / y) ** 2))),
         "rmse": float(np.sqrt(np.mean((y - pred) ** 2))),
         "corr": float(np.corrcoef(y, pred)[0, 1]),
@@ -59,11 +61,13 @@ def data_version():
 
 def log_metrics(test, pred):
     """Log overall and per-coin test metrics to the active MLflow run; return overall."""
-    overall = scores(test["target"].to_numpy(), pred)
+    y = test["target"].to_numpy()
+    overall = scores(y, pred)
     mlflow.log_metrics(overall)
     for symbol in test["symbol"].unique():
         mask = (test["symbol"] == symbol).to_numpy()
-        mlflow.log_metric(f"rmspe_{symbol}", scores(test["target"].to_numpy()[mask], pred[mask])["rmspe"])
+        coin = scores(y[mask], pred[mask])
+        mlflow.log_metrics({f"qlike_{symbol}": coin["qlike"], f"rmspe_{symbol}": coin["rmspe"]})
     return overall
 
 
@@ -100,13 +104,14 @@ def main():
         "test_start": str(pd.to_datetime(test["open_time"].min(), unit="ms")),
     }
 
-    log_target = {"func": np.log, "inverse_func": np.exp, "check_inverse": False}
     models = {
         "har": (TransformedTargetRegressor(
-            regressor=make_pipeline(FunctionTransformer(np.log), LinearRegression()), **log_target),
+            regressor=make_pipeline(FunctionTransformer(np.log), LinearRegression()),
+            func=np.log, inverse_func=np.exp, check_inverse=False),
             HAR_FEATURES, {}),
         "lightgbm": (TransformedTargetRegressor(
-            regressor=lgb.LGBMRegressor(**mcfg["lgbm"], verbose=-1), **log_target),
+            regressor=lgb.LGBMRegressor(**mcfg["lgbm"], objective="gamma", verbose=-1),
+            func=np.square, inverse_func=np.sqrt, check_inverse=False),
             MODEL_FEATURES, {"categorical_feature": ["symbol_id"]}),
     }
 
@@ -121,7 +126,7 @@ def main():
         with mlflow.start_run(run_name=name, tags=tags) as run:
             mlflow.log_params({**params, "features": ",".join(cols)})
             if name == "lightgbm":
-                mlflow.log_params(mcfg["lgbm"])
+                mlflow.log_params({**mcfg["lgbm"], "objective": "gamma (QLIKE)"})
             model.fit(train[cols], train["target"], **fit_params)
             pred = model.predict(test[cols])
             results[name], runs[name] = log_metrics(test, pred), run.info.run_id
