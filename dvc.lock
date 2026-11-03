@@ -167,3 +167,17 @@ stages:
       hash: md5
       md5: 2025d4847f4286798968fe69fcb14365
       size: 238
+  export:
+    cmd: MLFLOW_TRACKING_URI=sqlite:///mlflow.db mlflow artifacts download 
+      --artifact-uri models:/volcast@champion --dst-path models/champion
+    deps:
+    - path: metrics/evaluate.json
+      hash: md5
+      md5: 2025d4847f4286798968fe69fcb14365
+      size: 238
+    outs:
+    - path: models/champion
+      hash: md5
+      md5: 733663f5e7ac15df60009eeb046700a7.dir
+      size: 1883546
+      nfiles: 8

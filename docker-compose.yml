@@ -1,12 +1,8 @@
 services:
   model-server:
     build: .
-    working_dir: ${PWD}
-    volumes:
-      - ${PWD}:${PWD}
-    environment:
-      MLFLOW_TRACKING_URI: sqlite:///mlflow.db
-    command: mlflow models serve -m models:/volcast@champion -h 0.0.0.0 -p 5001 --env-manager local
+    image: volcast
+    command: mlflow models serve -m models/champion -h 0.0.0.0 -p 5001 --env-manager local
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/ping')"]
       interval: 10s
@@ -15,13 +11,14 @@ services:
     restart: unless-stopped
 
   backend:
-    build: .
-    working_dir: ${PWD}
-    volumes:
-      - ${PWD}:${PWD}
+    image: volcast
+    pull_policy: never
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
     environment:
       MODEL_URL: http://model-server:5001
-    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+      PRED_DB: /data/predictions.db
+    volumes:
+      - predictions:/data
     ports:
       - "8000:8000"
     depends_on:
@@ -32,3 +29,6 @@ services:
       interval: 10s
       retries: 3
     restart: unless-stopped
+
+volumes:
+  predictions:

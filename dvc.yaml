@@ -2,82 +2,89 @@ stages:
   download:
     cmd: python -m src.data.download
     deps:
-      - src/data/download.py
+    - src/data/download.py
     params:
-      - configs/config.yaml:
-          - data.symbols
-          - data.start_date
-          - data.end_date
+    - configs/config.yaml:
+      - data.symbols
+      - data.start_date
+      - data.end_date
     outs:
-      - data/raw:
-          persist: true
+    - data/raw:
+        persist: true
 
   thresholds:
     cmd: python -m src.data.thresholds
     deps:
-      - src/data/thresholds.py
-      - src/data/trades.py
-      - src/utils/spark.py
-      - data/raw
+    - src/data/thresholds.py
+    - src/data/trades.py
+    - src/utils/spark.py
+    - data/raw
     params:
-      - configs/config.yaml:
-          - data.large_trade_quantile
-          - data.threshold_days
+    - configs/config.yaml:
+      - data.large_trade_quantile
+      - data.threshold_days
     outs:
-      - artifacts/thresholds.json:
-          cache: false
+    - artifacts/thresholds.json:
+        cache: false
 
   bars:
     cmd: python -m src.data.bars
     deps:
-      - src/data/bars.py
-      - src/data/trades.py
-      - src/utils/spark.py
-      - data/raw
-      - artifacts/thresholds.json
+    - src/data/bars.py
+    - src/data/trades.py
+    - src/utils/spark.py
+    - data/raw
+    - artifacts/thresholds.json
     outs:
-      - data/bars:
-          persist: true
+    - data/bars:
+        persist: true
     metrics:
-      - metrics/bars.json:
-          cache: false
+    - metrics/bars.json:
+        cache: false
 
   features:
     cmd: python -m src.features.make_features
     deps:
-      - src/features/build.py
-      - src/features/make_features.py
-      - data/bars
+    - src/features/build.py
+    - src/features/make_features.py
+    - data/bars
     params:
-      - configs/config.yaml:
-          - model.horizon_minutes
+    - configs/config.yaml:
+      - model.horizon_minutes
     outs:
-      - data/features
+    - data/features
 
   train:
     cmd: python -m src.models.train
     deps:
-      - src/models/train.py
-      - src/features/build.py
-      - data/features
+    - src/models/train.py
+    - src/features/build.py
+    - data/features
     params:
-      - configs/config.yaml:
-          - model.test_days
-          - model.lgbm
+    - configs/config.yaml:
+      - model.test_days
+      - model.lgbm
     outs:
-      - artifacts/train_runs.json:
-          cache: false
+    - artifacts/train_runs.json:
+        cache: false
     metrics:
-      - metrics/train.json:
-          cache: false
+    - metrics/train.json:
+        cache: false
 
   evaluate:
     cmd: python -m src.models.evaluate
     deps:
-      - src/models/evaluate.py
-      - metrics/train.json
-      - artifacts/train_runs.json
-      - data/features
+    - src/models/evaluate.py
+    - metrics/train.json
+    - artifacts/train_runs.json
+    - data/features
     metrics:
-      - metrics/evaluate.json:
-          cache: false
+    - metrics/evaluate.json:
+        cache: false
+  export:
+    cmd: MLFLOW_TRACKING_URI=sqlite:///mlflow.db mlflow artifacts download 
+      --artifact-uri models:/volcast@champion --dst-path models/champion
+    deps:
+    - metrics/evaluate.json
+    outs:
+    - models/champion

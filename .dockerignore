@@ -1,2 +1,6 @@
 *
 !requirements.txt
+!configs/
+!src/
+!models/champion/
+**/__pycache__
