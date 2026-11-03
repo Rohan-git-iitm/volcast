@@ -5,9 +5,11 @@ import threading
 import time
 from contextlib import asynccontextmanager
 
+import numpy as np
 import pandas as pd
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
 from src.api import store
 from src.features.build import compute_features
@@ -19,6 +21,7 @@ MODEL_URL = os.getenv("MODEL_URL", "http://127.0.0.1:5001")
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
               "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"]
 LOOKBACK = 1500  # minutes; the 24-hour features need 1,441 candles
+ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics"}
 
 cfg = load_config()
 SYMBOLS = cfg["data"]["symbols"]
@@ -26,6 +29,15 @@ HORIZON = cfg["model"]["horizon_minutes"]
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("volcast.api")
 windows: dict[str, pd.DataFrame] = {}
+
+REQUESTS = Counter("volcast_requests_total", "API requests", ["endpoint", "status"])
+REQUEST_SECONDS = Histogram("volcast_request_seconds", "API request latency", ["endpoint"])
+MODEL_SECONDS = Histogram("volcast_model_seconds", "Model server call latency")
+WORKER_ERRORS = Counter("volcast_worker_errors_total", "Failed worker updates", ["symbol"])
+FORECAST = Gauge("volcast_forecast_vol", "Latest volatility forecast", ["symbol"])
+LAST_CANDLE = Gauge("volcast_last_candle_timestamp", "Open time of the newest candle (unix s)", ["symbol"])
+LIVE_RMSPE = Gauge("volcast_live_rmspe", "RMSPE of forecasts scored in the last 24 h", ["symbol"])
+SCORED = Gauge("volcast_scored_forecasts", "Forecasts scored in the last 24 h", ["symbol"])
 
 
 def fetch_candles(symbol: str, start: int) -> pd.DataFrame:
@@ -57,6 +69,7 @@ def update_window(symbol: str) -> bool:
         return False
     combined = new if old is None else pd.concat([old, new])
     windows[symbol] = combined.drop_duplicates("open_time").tail(LOOKBACK).reset_index(drop=True)
+    LAST_CANDLE.labels(symbol).set(windows[symbol]["open_time"].max() / 1000)
     return True
 
 
@@ -67,9 +80,12 @@ def forecast(symbol: str, feats: pd.DataFrame):
         log.warning("Skipping %s: incomplete features", symbol)
         return
     payload = {"dataframe_split": row.to_dict(orient="split", index=False)}
-    resp = requests.post(f"{MODEL_URL}/invocations", json=payload, timeout=10)
+    with MODEL_SECONDS.time():
+        resp = requests.post(f"{MODEL_URL}/invocations", json=payload, timeout=10)
     resp.raise_for_status()
-    store.add_forecast(symbol, int(row.index[0]), resp.json()["predictions"][0])
+    vol = resp.json()["predictions"][0]
+    store.add_forecast(symbol, int(row.index[0]), vol)
+    FORECAST.labels(symbol).set(vol)
 
 
 def score(symbol: str, feats: pd.DataFrame):
@@ -80,6 +96,16 @@ def score(symbol: str, feats: pd.DataFrame):
             store.set_actual(symbol, as_of, float(actual[as_of]))
 
 
+def update_live_error(symbol: str):
+    """Recompute the live RMSPE over forecasts scored in the last 24 hours."""
+    since = int(time.time() * 1000) - 24 * 3600 * 1000
+    rows = [r for r in store.history(symbol, since) if r["actual"]]
+    SCORED.labels(symbol).set(len(rows))
+    if rows:
+        err = [(r["forecast"] - r["actual"]) / r["actual"] for r in rows]
+        LIVE_RMSPE.labels(symbol).set(float(np.sqrt(np.mean(np.square(err)))))
+
+
 def run_once():
     for symbol in SYMBOLS:
         try:
@@ -87,7 +113,9 @@ def run_once():
                 feats = compute_features(windows[symbol], HORIZON)
                 forecast(symbol, feats)
                 score(symbol, feats)
+                update_live_error(symbol)
         except Exception:
+            WORKER_ERRORS.labels(symbol).inc()
             log.exception("Update failed for %s", symbol)
 
 
@@ -107,6 +135,16 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="VolCast API", lifespan=lifespan)
 
 
+@app.middleware("http")
+async def track_requests(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    endpoint = request.url.path if request.url.path in ENDPOINTS else "other"
+    REQUEST_SECONDS.labels(endpoint).observe(time.perf_counter() - start)
+    REQUESTS.labels(endpoint, str(response.status_code)).inc()
+    return response
+
+
 def check_symbol(symbol: str):
     if symbol not in SYMBOLS:
         raise HTTPException(404, f"Unknown symbol. Choose from {SYMBOLS}")
@@ -121,6 +159,11 @@ def describe(row: dict) -> dict:
         "expected_move_pct": round(row["forecast"] * 100, 3),
         "actual_vol": row["actual"],
     }
+
+
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/health")

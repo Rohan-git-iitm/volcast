@@ -1,0 +1,13 @@
+mlflow
+lightgbm
+scikit-learn
+skops
+pandas
+numpy
+pyarrow
+pyyaml
+fastapi
+uvicorn
+requests
+prometheus-client
+matplotlib

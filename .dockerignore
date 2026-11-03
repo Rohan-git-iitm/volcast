@@ -4,3 +4,4 @@
 !src/
 !models/champion/
 **/__pycache__
+!requirements-serve.txt
