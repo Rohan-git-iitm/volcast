@@ -4,3 +4,4 @@ mlruns/
 *.log
 logs/
 mlflow.db
+predictions.db
