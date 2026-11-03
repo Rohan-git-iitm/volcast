@@ -1,0 +1,10 @@
+name: volcast
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    command: "dvc repro"
+  train:
+    command: "dvc repro train"
+  evaluate:
+    command: "dvc repro evaluate"
