@@ -60,9 +60,9 @@ data, model = st.columns(2, gap="large")
 with data:
     st.subheader("Data")
     w = status["window"]
-    refresh = status.get("refresh", {})
+    refresh = status.get("refresh")
     st.markdown(f"**Window:** {day(w['start'])} to {day(w['end'])}")
-    st.markdown(f"**Last refresh:** {when(refresh.get('time'))}, {refresh.get('result', '—')}")
+    st.markdown(f"**Last refresh:** {when(refresh['time'])}, {refresh['result']}" if refresh else "**Last refresh:** —")
     if status.get("throughput"):
         st.markdown(f"**Bars throughput:** {status['throughput'] / 1e6:.1f} M trades/s")
 
@@ -73,7 +73,7 @@ with model:
     if "window" in champ:
         st.markdown(f"**Trained on:** {day(champ['window']['start'])} to {day(champ['window']['end'])}")
     if champ.get("qlike") is not None:
-        st.markdown(f"**Test QLIKE:** {champ['qlike']:.3f}")
+        st.markdown(f"**QLIKE, latest test period:** {champ['qlike']:.3f}")
     retrain = status.get("retrain")
     if retrain:
         outcome = "promoted" if retrain.get("promoted") else f"not promoted ({retrain.get('reason', '')})"
@@ -89,7 +89,7 @@ else:
     st.table(pd.DataFrame({
         "Date": runs["time"].map(when),
         "Model": runs["model"],
-        "QLIKE": runs["qlike"].map("{:.3f}".format),
+        "QLIKE (own test period)": runs["qlike"].map("{:.3f}".format),
         "RMSPE": runs["rmspe"].map(lambda v: f"{v:.3f}" if pd.notna(v) else "—"),
         "Champion": runs["champion"].map({True: "✓", False: ""}),
     }))
