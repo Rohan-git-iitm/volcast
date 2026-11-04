@@ -5,3 +5,4 @@ mlruns/
 logs/
 mlflow.db
 predictions.db
+.pipeline.lock

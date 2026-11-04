@@ -1,0 +1,42 @@
+groups:
+  - name: volcast
+    rules:
+      - alert: BackendDown
+        expr: up{job="volcast-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "VolCast backend is unreachable"
+
+      - alert: DataStale
+        expr: (time() - volcast_last_candle_timestamp) / 60 > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No new candles for {{ $labels.symbol }} in over 10 minutes"
+
+      - alert: WorkerErrors
+        expr: increase(volcast_worker_errors_total[15m]) > 3
+        labels:
+          severity: warning
+        annotations:
+          summary: "Worker failed more than 3 times in 15 minutes for {{ $labels.symbol }}"
+
+      - alert: InputDrift
+        expr: max by (symbol) (volcast_feature_out_of_range) > 0.2
+        for: 2h
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.symbol }}: a feature spent over 20% of the last day outside the training range"
+
+      - alert: LiveErrorHigh
+        expr: volcast_live_rmspe > 0.41 and volcast_scored_forecasts >= 360
+        for: 6h
+        labels:
+          severity: critical
+          action: retrain
+        annotations:
+          summary: "{{ $labels.symbol }}: live RMSPE above 1.5x test for 6 hours"
