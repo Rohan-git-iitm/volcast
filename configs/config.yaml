@@ -1,20 +1,21 @@
 data:
-  symbols: [BTCUSDT, ETHUSDT, SOLUSDT]
-  start_date: "2026-07-01"
-  end_date: "2026-09-30"
-  base_url: "https://data.binance.vision/data/spot/daily/trades"
+  symbols:
+  - BTCUSDT
+  - ETHUSDT
+  - SOLUSDT
+  start_date: '2026-08-04'
+  end_date: '2026-11-03'
+  base_url: https://data.binance.vision/data/spot/daily/trades
   raw_dir: data/raw
   bars_dir: data/bars
   features_dir: data/features
   large_trade_quantile: 0.99
   threshold_days: 7
   thresholds_path: artifacts/thresholds.json
-
 spark:
-  master: "local[*]"
-  driver_memory: "3g"
-  local_ip: "127.0.0.1"
-
+  master: local[*]
+  driver_memory: 3g
+  local_ip: 127.0.0.1
 model:
   horizon_minutes: 60
   test_days: 14
@@ -23,11 +24,9 @@ model:
     learning_rate: 0.03
     num_leaves: 31
     min_child_samples: 200
-
 mlflow:
-  tracking_uri: "sqlite:///mlflow.db"
+  tracking_uri: sqlite:///mlflow.db
   experiment: volcast
-
 logging:
   dir: logs
   level: INFO
