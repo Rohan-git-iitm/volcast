@@ -6,6 +6,7 @@ exec 9> .pipeline.lock
 flock 9
 source .venv/bin/activate
 export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+trap 'python -m src.monitoring.pipeline_status retrain failed' ERR
 
 echo "=== Retrain started $(date -u '+%F %T') UTC ==="
 dvc repro
@@ -22,4 +23,5 @@ git add dvc.lock metrics/ artifacts/
 if ! git diff --cached --quiet; then
   git commit -m "Retrain $(date -u +%F)"
 fi
+python -m src.monitoring.pipeline_status retrain ok
 echo "=== Retrain finished $(date -u '+%F %T') UTC ==="

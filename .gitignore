@@ -6,3 +6,4 @@ logs/
 mlflow.db
 predictions.db
 .pipeline.lock
+status/

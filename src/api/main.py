@@ -18,13 +18,14 @@ from src.utils.config import ROOT, load_config
 
 import json
 from collections import deque
+from pathlib import Path
 
 BINANCE = "https://data-api.binance.vision/api/v3"
 MODEL_URL = os.getenv("MODEL_URL", "http://127.0.0.1:5001")
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
               "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"]
 LOOKBACK = 1500  # minutes; the 24-hour features need 1,441 candles
-ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics", "/admin/simulate-drift", "/accuracy"}
+ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics", "/admin/simulate-drift", "/accuracy", "/pipeline"}
 LIVE_QLIKE = Gauge("volcast_live_qlike", "QLIKE of forecasts scored in the last 24 h", ["symbol"])
 
 cfg = load_config()
@@ -282,3 +283,13 @@ def simulate_drift(factor: float = 3.0):
     for buffer in live_rows.values():
         buffer.clear()
     return {"factor": factor, "note": "Affects drift metrics only; forecasts use real data"}
+
+PIPELINE_STATUS = Path(os.getenv("PIPELINE_STATUS", str(ROOT / "status/pipeline.json")))
+
+
+@app.get("/pipeline")
+def pipeline():
+    try:
+        return json.loads(PIPELINE_STATUS.read_text())
+    except FileNotFoundError:
+        raise HTTPException(503, "No pipeline status yet")
