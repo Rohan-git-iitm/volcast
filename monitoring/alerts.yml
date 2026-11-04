@@ -33,10 +33,10 @@ groups:
           summary: "{{ $labels.symbol }}: a feature spent over 20% of the last day outside the training range"
 
       - alert: LiveErrorHigh
-        expr: volcast_live_rmspe > 0.41 and volcast_scored_forecasts >= 360
+        expr: volcast_live_qlike > 0.38 and volcast_scored_forecasts >= 360
         for: 6h
         labels:
           severity: critical
           action: retrain
         annotations:
-          summary: "{{ $labels.symbol }}: live RMSPE above 1.5x test for 6 hours"
+          summary: "{{ $labels.symbol }}: live QLIKE above 1.5x test for 6 hours"

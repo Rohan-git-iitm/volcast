@@ -160,14 +160,14 @@
     },
     {
       "type": "stat",
-      "title": "Live RMSPE (worst coin)",
+      "title": "Live QLIKE (worst coin)",
       "gridPos": {
         "x": 8,
         "y": 1,
         "w": 4,
         "h": 4
       },
-      "description": "Forecast error over the last 24 h, same formula as the test set (test: about 27%). Red at 1.5x test: retraining needed if it stays there.",
+      "description": "QLIKE over the last 24 h, the metric the champion was selected on (test: about 0.25). Red at 1.5x test: retraining needed if it stays there.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -175,7 +175,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max(volcast_live_rmspe)",
+          "expr": "max(volcast_live_qlike)",
           "instant": true
         }
       ],
@@ -190,8 +190,8 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit",
-          "decimals": 0,
+          "unit": "none",
+          "decimals": 3,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -205,7 +205,7 @@
               },
               {
                 "color": "red",
-                "value": 0.41
+                "value": 0.38
               }
             ]
           }
@@ -553,14 +553,14 @@
     },
     {
       "type": "timeseries",
-      "title": "Live RMSPE vs alert threshold",
+      "title": "Live QLIKE vs alert threshold",
       "gridPos": {
         "x": 15,
         "y": 6,
         "w": 9,
         "h": 8
       },
-      "description": "Forecast error over the last 24 h per coin. The dashed red line is the alert threshold (1.5x test RMSPE).",
+      "description": "QLIKE over the last 24 h per coin. Lower is better, 0 is perfect. The dashed red line is the alert threshold (1.5x test).",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -568,13 +568,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "volcast_live_rmspe",
+          "expr": "volcast_live_qlike",
           "legendFormat": "{{symbol}}"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit",
+          "unit": "none",
           "min": 0,
           "custom": {
             "lineWidth": 2,
@@ -592,7 +592,7 @@
               },
               {
                 "color": "red",
-                "value": 0.41
+                "value": 0.38
               }
             ]
           }

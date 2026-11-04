@@ -13,7 +13,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, ge
 
 from src.api import store
 from src.features.build import compute_features
-from src.models.train import MODEL_FEATURES
+from src.models.train import MODEL_FEATURES, scores
 from src.utils.config import ROOT, load_config
 
 import json
@@ -25,6 +25,7 @@ KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time
               "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"]
 LOOKBACK = 1500  # minutes; the 24-hour features need 1,441 candles
 ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics", "/admin/simulate-drift"}
+LIVE_QLIKE = Gauge("volcast_live_qlike", "QLIKE of forecasts scored in the last 24 h", ["symbol"])
 
 cfg = load_config()
 SYMBOLS = cfg["data"]["symbols"]
@@ -140,13 +141,14 @@ def score(symbol: str, feats: pd.DataFrame):
 
 
 def update_live_error(symbol: str):
-    """Recompute the live RMSPE over forecasts scored in the last 24 hours."""
+    """Recompute live QLIKE and RMSPE over forecasts scored in the last 24 hours, with training's scorer."""
     since = int(time.time() * 1000) - 24 * 3600 * 1000
     rows = [r for r in store.history(symbol, since) if r["actual"]]
     SCORED.labels(symbol).set(len(rows))
     if rows:
-        err = [(r["forecast"] - r["actual"]) / r["actual"] for r in rows]
-        LIVE_RMSPE.labels(symbol).set(float(np.sqrt(np.mean(np.square(err)))))
+        s = scores(np.array([r["actual"] for r in rows]), np.array([r["forecast"] for r in rows]))
+        LIVE_QLIKE.labels(symbol).set(s["qlike"])
+        LIVE_RMSPE.labels(symbol).set(s["rmspe"])
 
 
 def run_once():
