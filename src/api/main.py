@@ -24,7 +24,7 @@ MODEL_URL = os.getenv("MODEL_URL", "http://127.0.0.1:5001")
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
               "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"]
 LOOKBACK = 1500  # minutes; the 24-hour features need 1,441 candles
-ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics", "/admin/simulate-drift"}
+ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics", "/admin/simulate-drift", "/accuracy"}
 LIVE_QLIKE = Gauge("volcast_live_qlike", "QLIKE of forecasts scored in the last 24 h", ["symbol"])
 
 cfg = load_config()
@@ -208,6 +208,14 @@ def describe(row: dict) -> dict:
         "actual_vol": row["actual"],
     }
 
+BANDS = [(33, "Calm"), (67, "Normal"), (95, "Elevated"), (101, "Extreme")]
+
+
+def risk_band(symbol: str, vol: float) -> tuple[float, str]:
+    """Training percentile of a forecast among past hourly volatilities, and its band name."""
+    pct = float(np.interp(vol, np.array(REFERENCE[symbol]["rv_1h"]), np.arange(101)))
+    return pct, next(name for limit, name in BANDS if pct < limit)
+
 
 @app.get("/metrics")
 def metrics():
@@ -238,7 +246,25 @@ def predict(symbol: str = "BTCUSDT"):
     row = store.latest(symbol)
     if row is None:
         raise HTTPException(503, "Warming up: no forecast yet")
-    return describe(row)
+    out = describe(row)
+    pct, band = risk_band(symbol, row["forecast"])
+    out.update(percentile=round(pct), band=band)
+    window = windows.get(symbol)
+    if window is not None:
+        price = float(window["close"].iloc[-1])
+        out.update(price=price, expected_move_usd=round(price * row["forecast"], 2))
+    return out
+
+
+@app.get("/accuracy")
+def accuracy(symbol: str = "BTCUSDT", hours: int = 24):
+    check_symbol(symbol)
+    since = int(time.time() * 1000) - hours * 3600 * 1000
+    rows = [r for r in store.history(symbol, since) if r["actual"]]
+    if not rows:
+        return {"symbol": symbol, "hours": hours, "scored": 0}
+    s = scores(np.array([r["actual"] for r in rows]), np.array([r["forecast"] for r in rows]))
+    return {"symbol": symbol, "hours": hours, "scored": len(rows), **{k: float(v) for k, v in s.items()}}
 
 
 @app.get("/history")
