@@ -9,3 +9,8 @@ scrape_configs:
   - job_name: volcast-backend
     static_configs:
       - targets: ["backend:8000"]
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]

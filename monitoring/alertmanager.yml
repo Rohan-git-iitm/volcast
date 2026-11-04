@@ -1,0 +1,14 @@
+route:
+  receiver: default
+  group_by: [alertname, symbol]
+  group_wait: 30s
+  repeat_interval: 24h
+  routes:
+    - matchers: ['action="retrain"']
+      receiver: retrainer
+
+receivers:
+  - name: default
+  - name: retrainer
+    webhook_configs:
+      - url: http://host.docker.internal:9095/retrain
