@@ -51,6 +51,8 @@ stages:
     params:
     - configs/config.yaml:
       - model.horizon_minutes
+      - data.start_date
+      - data.end_date
     outs:
     - data/features
 

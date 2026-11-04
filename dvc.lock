@@ -98,10 +98,12 @@ stages:
       size: 2203
     - path: src/features/make_features.py
       hash: md5
-      md5: 30800a417de3fdf96471378269b46c01
-      size: 1018
+      md5: 4591d9abe99bd58df1ec3d9d9ddaa9fc
+      size: 1495
     params:
       configs/config.yaml:
+        data.end_date: '2026-09-30'
+        data.start_date: '2026-07-01'
         model.horizon_minutes: 60
     outs:
     - path: data/features
