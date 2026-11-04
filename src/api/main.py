@@ -14,7 +14,10 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, ge
 from src.api import store
 from src.features.build import compute_features
 from src.models.train import MODEL_FEATURES
-from src.utils.config import load_config
+from src.utils.config import ROOT, load_config
+
+import json
+from collections import deque
 
 BINANCE = "https://data-api.binance.vision/api/v3"
 MODEL_URL = os.getenv("MODEL_URL", "http://127.0.0.1:5001")
@@ -38,7 +41,31 @@ FORECAST = Gauge("volcast_forecast_vol", "Latest volatility forecast", ["symbol"
 LAST_CANDLE = Gauge("volcast_last_candle_timestamp", "Open time of the newest candle (unix s)", ["symbol"])
 LIVE_RMSPE = Gauge("volcast_live_rmspe", "RMSPE of forecasts scored in the last 24 h", ["symbol"])
 SCORED = Gauge("volcast_scored_forecasts", "Forecasts scored in the last 24 h", ["symbol"])
+PERCENTILE = Gauge("volcast_feature_percentile", "Training percentile of the latest live value",
+                   ["symbol", "feature"])
+OUT_OF_RANGE = Gauge("volcast_feature_out_of_range",
+                     "Share of the last 24 h of live values outside the training 1st-99th percentile",
+                     ["symbol", "feature"])
+REFERENCE = json.loads((ROOT / "models/reference.json").read_text())
+DRIFT_FEATURES = list(REFERENCE[SYMBOLS[0]])
+live_rows: dict[str, deque] = {s: deque(maxlen=1440) for s in SYMBOLS}
 
+
+def update_drift(symbol: str, feats: pd.DataFrame):
+    """Add the newest feature row to the coin's 24 h buffer and compare it with training."""
+    rows = feats[DRIFT_FEATURES].dropna()
+    buffer = live_rows[symbol]
+    if buffer:
+        rows = rows.tail(1)
+    buffer.extend(rows.to_dict("records"))
+    if not buffer:
+        return
+    live = pd.DataFrame(buffer)
+    for f in DRIFT_FEATURES:
+        q = np.array(REFERENCE[symbol][f])
+        values = live[f].to_numpy()
+        PERCENTILE.labels(symbol, f).set(float(np.interp(values[-1], q, np.arange(101))))
+        OUT_OF_RANGE.labels(symbol, f).set(float(np.mean((values < q[1]) | (values > q[99]))))
 
 def fetch_candles(symbol: str, start: int) -> pd.DataFrame:
     """Fetch completed 1-minute candles from `start` (ms) up to the current minute."""
@@ -58,17 +85,20 @@ def fetch_candles(symbol: str, start: int) -> pd.DataFrame:
 
 
 def update_window(symbol: str) -> bool:
-    """Add new candles to the coin's rolling window. Returns True if any arrived."""
+    """Add new candles to the coin's rolling window. Returns True if any arrived.
+
+    The first call fetches an extra day so the drift buffer starts with a full 24 hours.
+    """
     old = windows.get(symbol)
     if old is None:
-        start = int(time.time() // 60 * 60000) - LOOKBACK * 60000
+        start = int(time.time() // 60 * 60000) - (LOOKBACK + 1440) * 60000
     else:
         start = int(old["open_time"].max()) + 60000
     new = fetch_candles(symbol, start)
     if new.empty:
         return False
-    combined = new if old is None else pd.concat([old, new])
-    windows[symbol] = combined.drop_duplicates("open_time").tail(LOOKBACK).reset_index(drop=True)
+    combined = new if old is None else pd.concat([old, new]).drop_duplicates("open_time").tail(LOOKBACK)
+    windows[symbol] = combined.reset_index(drop=True)
     LAST_CANDLE.labels(symbol).set(windows[symbol]["open_time"].max() / 1000)
     return True
 
@@ -114,6 +144,7 @@ def run_once():
                 forecast(symbol, feats)
                 score(symbol, feats)
                 update_live_error(symbol)
+                update_drift(symbol, feats)
         except Exception:
             WORKER_ERRORS.labels(symbol).inc()
             log.exception("Update failed for %s", symbol)

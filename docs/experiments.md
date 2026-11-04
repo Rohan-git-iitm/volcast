@@ -77,3 +77,15 @@ Feature importance (gain) in the absolute variant also ranked all three large-tr
 | Ensemble (0.9 LightGBM, 0.1 HAR) | 0.2731 | 0.2144 | 0.7819 |
 
 **Conclusion:** Each training loss won its own metric by a wide margin. RMSPE training under-forecasts by design: its optimal forecast is $E[1/y]/E[1/y^2]$, which lies below average volatility, because over-forecasting a calm hour produces a large percentage error. QLIKE training is unbiased for variance (optimal $\hat{y}^2 = E[y^2]$). Since the application warns users about expected price swings, systematic under-forecasting is the most harmful failure, so QLIKE was adopted as the primary metric and LightGBM switched to QLIKE training. RMSPE and correlation are still reported. Realized quarticity had no effect, and the ensemble gained under 1% with a weight of 0.9 on LightGBM, so neither was adopted.
+
+## E4: Drift metric choice (3-4 Nov 2026)
+
+**Question:** Which input-drift measure is reliable for rolling-window features?
+
+**Tried:** PSI on 10 training deciles, live window of about 90 minutes. Every coin and feature scored 1.3 to 8.3, with `rv_24h` at 8.28, the maximum PSI for 10 buckets (all live rows in one bucket).
+
+**Why it failed:** the features are rolling windows, so consecutive minutes are nearly identical (strong autocorrelation). PSI and similar two-sample tests assume independent rows, so a short live window looks like a single point and is always flagged.
+
+**Adopted:** per feature, the training percentile of the latest value, and the share of the last 24 hours outside the training 1st to 99th percentile (2% expected). On the same day, BTC volatility features sat at the 65th to 92nd percentile with out-of-range shares near 0, i.e. no drift.
+
+**Decision:** percentile and out-of-range share for inputs; sustained live RMSPE against test RMSPE for performance.

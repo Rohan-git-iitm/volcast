@@ -5,3 +5,5 @@
 !models/champion/
 **/__pycache__
 !requirements-serve.txt
+!models/reference.json
+!models/reference.json

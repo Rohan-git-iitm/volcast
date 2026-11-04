@@ -88,3 +88,10 @@ stages:
     - metrics/evaluate.json
     outs:
     - models/champion
+  reference:
+    cmd: python -m src.monitoring.reference
+    deps:
+    - data/features/features.parquet
+    - src/monitoring/reference.py
+    outs:
+    - models/reference.json

@@ -181,3 +181,19 @@ stages:
       md5: 733663f5e7ac15df60009eeb046700a7.dir
       size: 1883546
       nfiles: 8
+  reference:
+    cmd: python -m src.monitoring.reference
+    deps:
+    - path: data/features/features.parquet
+      hash: md5
+      md5: faee72b8c727fec4daa2f5026ca045aa
+      size: 40302887
+    - path: src/monitoring/reference.py
+      hash: md5
+      md5: a3676b800a5d6fa8c3dcf05741015428
+      size: 805
+    outs:
+    - path: models/reference.json
+      hash: md5
+      md5: 6d3fdaa341b64edafa6d20409e02b169
+      size: 81535
