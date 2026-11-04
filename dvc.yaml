@@ -94,6 +94,8 @@ stages:
     cmd: python -m src.monitoring.reference
     deps:
     - data/features/features.parquet
+    - metrics/evaluate.json
     - src/monitoring/reference.py
     outs:
-    - models/reference.json
+    - models/reference.json:
+        persist: true

@@ -190,12 +190,16 @@ stages:
       hash: md5
       md5: 1734d6fea3578530589858a88daf75ba
       size: 40324070
+    - path: metrics/evaluate.json
+      hash: md5
+      md5: f85a283a1600192e5d5140ac8633cd4f
+      size: 236
     - path: src/monitoring/reference.py
       hash: md5
-      md5: a3676b800a5d6fa8c3dcf05741015428
-      size: 805
+      md5: 628ab1c0187bcd50fcdfd02bc52f48de
+      size: 1294
     outs:
     - path: models/reference.json
       hash: md5
-      md5: 6bfb543eb1f4e123093c2a78de0e0a7c
-      size: 81542
+      md5: 6d3fdaa341b64edafa6d20409e02b169
+      size: 81535
