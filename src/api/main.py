@@ -24,7 +24,7 @@ MODEL_URL = os.getenv("MODEL_URL", "http://127.0.0.1:5001")
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
               "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"]
 LOOKBACK = 1500  # minutes; the 24-hour features need 1,441 candles
-ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics"}
+ENDPOINTS = {"/predict", "/history", "/health", "/ready", "/metrics", "/admin/simulate-drift"}
 
 cfg = load_config()
 SYMBOLS = cfg["data"]["symbols"]
@@ -66,6 +66,19 @@ def update_drift(symbol: str, feats: pd.DataFrame):
         values = live[f].to_numpy()
         PERCENTILE.labels(symbol, f).set(float(np.interp(values[-1], q, np.arange(101))))
         OUT_OF_RANGE.labels(symbol, f).set(float(np.mean((values < q[1]) | (values > q[99]))))
+
+SIM = {"factor": 1.0}
+SIM_FACTOR = Gauge("volcast_drift_simulation_factor", "Volatility factor applied to drift monitoring (1 = off)")
+SIM_FACTOR.set(1.0)
+
+
+def simulate_volatility(bars: pd.DataFrame, factor: float) -> pd.DataFrame:
+    """Scale every price move by `factor`, for drift-simulation demos only."""
+    b = bars.copy()
+    ref = np.log(b["close"].iloc[0])
+    for col in ["open", "high", "low", "close"]:
+        b[col] = np.exp(ref + factor * (np.log(b[col]) - ref))
+    return b
 
 def fetch_candles(symbol: str, start: int) -> pd.DataFrame:
     """Fetch completed 1-minute candles from `start` (ms) up to the current minute."""
@@ -144,6 +157,8 @@ def run_once():
                 forecast(symbol, feats)
                 score(symbol, feats)
                 update_live_error(symbol)
+                if SIM["factor"] != 1:
+                    feats = compute_features(simulate_volatility(windows[symbol], SIM["factor"]), HORIZON)
                 update_drift(symbol, feats)
         except Exception:
             WORKER_ERRORS.labels(symbol).inc()
@@ -229,3 +244,13 @@ def history(symbol: str = "BTCUSDT", hours: int = 24):
     check_symbol(symbol)
     since = int(time.time() * 1000) - hours * 3600 * 1000
     return [describe(r) for r in store.history(symbol, since)]
+
+@app.post("/admin/simulate-drift")
+def simulate_drift(factor: float = 3.0):
+    if factor <= 0:
+        raise HTTPException(400, "factor must be positive")
+    SIM["factor"] = factor
+    SIM_FACTOR.set(factor)
+    for buffer in live_rows.values():
+        buffer.clear()
+    return {"factor": factor, "note": "Affects drift metrics only; forecasts use real data"}
