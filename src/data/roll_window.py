@@ -28,8 +28,8 @@ def cleanup():
     cfg = yaml.safe_load(CONFIG.read_text())
     start = cfg["data"]["start_date"]
     removed = 0
-    for path in (ROOT / cfg["data"]["raw_dir"]).glob("*-trades-*.zip"):
-        if path.stem.split("-trades-")[1] < start:
+    for path in (ROOT / cfg["data"]["raw_dir"]).glob("*-trades-*.zip*"):
+        if path.name.split("-trades-")[1][:10] < start:
             path.unlink()
             removed += 1
     for path in (ROOT / cfg["data"]["bars_dir"]).glob("symbol=*/date=*"):

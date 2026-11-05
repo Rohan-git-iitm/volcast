@@ -11,6 +11,7 @@ trap 'python -m src.monitoring.pipeline_status refresh failed' ERR
 python -m src.data.roll_window set
 dvc repro download
 python -m src.data.roll_window cleanup
+dvc commit -f download
 dvc repro features
 git add configs/config.yaml dvc.lock artifacts/thresholds.json metrics/bars.json
 if git diff --cached --quiet; then

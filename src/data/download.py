@@ -30,9 +30,14 @@ def sha256(path: Path) -> str:
 
 
 def download_day(base_url: str, symbol: str, day: date, out_dir: Path) -> bool:
-    """Download one day's zip if missing or corrupt. Return True on success."""
+    """Download one day's zip if missing or corrupt, verify it once, and mark it verified. Return True on success."""
     name = f"{symbol}-trades-{day}.zip"
     path = out_dir / name
+    marker = out_dir / f"{name}.ok"
+    if path.exists() and marker.exists() and marker.read_text() == str(path.stat().st_size):
+        logger.info(f"Skip {name} (verified earlier)")
+        return True
+
     url = f"{base_url}/{symbol}/{name}"
     try:
         r = requests.get(url + ".CHECKSUM", timeout=30)
@@ -40,19 +45,21 @@ def download_day(base_url: str, symbol: str, day: date, out_dir: Path) -> bool:
         expected = r.text.split()[0]
 
         if path.exists() and sha256(path) == expected:
-            logger.info(f"Skip {name} (already verified)")
-            return True
+            logger.info(f"Verified {name}")
+        else:
+            part = out_dir / f"{name}.part"
+            with requests.get(url, stream=True, timeout=60) as r:
+                r.raise_for_status()
+                with open(part, "wb") as f:
+                    for chunk in r.iter_content(1 << 20):
+                        f.write(chunk)
+            if sha256(part) != expected:
+                part.unlink()
+                raise ValueError("checksum mismatch")
+            part.replace(path)
+            logger.info(f"Downloaded {name}")
 
-        with requests.get(url, stream=True, timeout=60) as r:
-            r.raise_for_status()
-            with open(path, "wb") as f:
-                for chunk in r.iter_content(1 << 20):
-                    f.write(chunk)
-
-        if sha256(path) != expected:
-            path.unlink()
-            raise ValueError("checksum mismatch")
-        logger.info(f"Downloaded {name}")
+        marker.write_text(str(path.stat().st_size))
         return True
     except Exception as e:
         logger.error(f"Failed {name}: {e}")
