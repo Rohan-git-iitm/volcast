@@ -1,24 +1,36 @@
-"""Check Spark-built bars against Binance's official 1-minute candles."""
+"""Check Spark-built bars for the last day in the window against Binance's official 1-minute candles."""
 import pandas as pd
 import pytest
+import requests
 
-from src.utils.config import ROOT
+from src.utils.config import ROOT, load_config
+
+pytestmark = pytest.mark.data
 
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
               "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"]
-FIXTURE = ROOT / "tests" / "fixtures" / "BTCUSDT-1m-2026-07-01.zip"
-BARS = ROOT / "data" / "bars" / "symbol=BTCUSDT" / "date=2026-07-01"
+DAY = load_config()["data"]["end_date"]
+BARS = ROOT / "data" / "bars" / "symbol=BTCUSDT" / f"date={DAY}"
+CACHE = ROOT / "tests" / "fixtures" / "klines" / f"BTCUSDT-1m-{DAY}.zip"
+URL = f"https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1m/BTCUSDT-1m-{DAY}.zip"
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def klines():
-    df = pd.read_csv(FIXTURE, header=None, names=KLINE_COLS)
+    if not CACHE.exists():
+        CACHE.parent.mkdir(parents=True, exist_ok=True)
+        resp = requests.get(URL, timeout=60)
+        resp.raise_for_status()
+        CACHE.write_bytes(resp.content)
+    df = pd.read_csv(CACHE, header=None, names=KLINE_COLS)
     df["open_time"] = df["open_time"].where(df["open_time"] < 1e14, df["open_time"] // 1000)
     return df.set_index("open_time").sort_index()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def bars():
+    if not BARS.exists():
+        pytest.skip(f"No bars for {DAY}; run the pipeline first")
     return pd.read_parquet(BARS).set_index("open_time").sort_index()
 
 

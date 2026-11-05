@@ -5,7 +5,7 @@ Usage: python -m src.monitoring.pipeline_status <refresh|retrain|init> <ok|faile
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import mlflow
 from mlflow import MlflowClient
@@ -42,7 +42,7 @@ def model_info(cfg: dict):
     champ = client.get_model_version_by_alias("volcast", "champion")
     exp = client.get_experiment_by_name(cfg["mlflow"]["experiment"])
     runs = client.search_runs([exp.experiment_id], order_by=["attributes.start_time DESC"], max_results=30)
-    rows = [{"time": datetime.fromtimestamp(r.info.start_time / 1000, timezone.utc).isoformat(),
+    rows = [{"time": datetime.fromtimestamp(r.info.start_time / 1000, UTC).isoformat(),
              "model": r.info.run_name, "qlike": r.data.metrics["qlike"], "rmspe": r.data.metrics.get("rmspe"),
              "champion": r.info.run_id == champ.run_id}
             for r in runs if "qlike" in r.data.metrics][:5]
@@ -51,7 +51,7 @@ def model_info(cfg: dict):
 
 def main(job: str, result: str, champion_window=None):
     cfg = load_config()
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     status = read_json(OUT, {})
     status["stages"] = stage_states(result == "failed")
     status["window"] = {"start": cfg["data"]["start_date"], "end": cfg["data"]["end_date"]}

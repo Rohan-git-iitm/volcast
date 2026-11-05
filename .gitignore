@@ -7,3 +7,4 @@ mlflow.db
 predictions.db
 .pipeline.lock
 status/
+tests/fixtures/klines/

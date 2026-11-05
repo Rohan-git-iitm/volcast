@@ -66,7 +66,7 @@ def main():
                 seconds = time.time() - start
                 total_trades, total_seconds, days = total_trades + n, total_seconds + seconds, days + 1
                 logger.info(f"{symbol} {day}: {n:,} trades in {seconds:.1f}s ({n / seconds:,.0f} trades/s)")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 (one failed day must not stop the others)
                 logger.error(f"Failed {symbol} {day}: {e}")
                 failed.append(f"{symbol} {day}")
     finally:

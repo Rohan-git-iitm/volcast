@@ -51,8 +51,7 @@ def download_day(base_url: str, symbol: str, day: date, out_dir: Path) -> bool:
             with requests.get(url, stream=True, timeout=60) as r:
                 r.raise_for_status()
                 with open(part, "wb") as f:
-                    for chunk in r.iter_content(1 << 20):
-                        f.write(chunk)
+                    f.writelines(r.iter_content(1 << 20))
             if sha256(part) != expected:
                 part.unlink()
                 raise ValueError("checksum mismatch")
@@ -61,7 +60,7 @@ def download_day(base_url: str, symbol: str, day: date, out_dir: Path) -> bool:
 
         marker.write_text(str(path.stat().st_size))
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 (one failed day must not stop the others)
         logger.error(f"Failed {name}: {e}")
         return False
 

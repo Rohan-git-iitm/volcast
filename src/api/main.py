@@ -1,24 +1,29 @@
 """Live forecast API: keeps a rolling candle window per coin, forecasts every minute, scores past forecasts."""
+import json
 import logging
 import os
 import threading
 import time
+from collections import deque
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import requests
 from fastapi import FastAPI, HTTPException, Request, Response
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 
 from src.api import store
 from src.features.build import compute_features
 from src.models.train import MODEL_FEATURES, scores
 from src.utils.config import ROOT, load_config
-
-import json
-from collections import deque
-from pathlib import Path
 
 BINANCE = "https://data-api.binance.vision/api/v3"
 MODEL_URL = os.getenv("MODEL_URL", "http://127.0.0.1:5001")
@@ -265,7 +270,8 @@ def accuracy(symbol: str = "BTCUSDT", hours: int = 24):
     if not rows:
         return {"symbol": symbol, "hours": hours, "scored": 0}
     s = scores(np.array([r["actual"] for r in rows]), np.array([r["forecast"] for r in rows]))
-    return {"symbol": symbol, "hours": hours, "scored": len(rows), **{k: float(v) for k, v in s.items()}}
+    return {"symbol": symbol, "hours": hours, "scored": len(rows),
+            **{k: float(v) if np.isfinite(v) else None for k, v in s.items()}}
 
 
 @app.get("/history")

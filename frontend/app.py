@@ -94,7 +94,8 @@ def accuracy_panel(acc: dict):
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("QLIKE", f"{acc['qlike']:.3f}", help="Lower is better. Test: 0.25.")
     c2.metric("Error", f"{acc['rmspe'] * 100:.0f}%", help="Average percentage error.")
-    c3.metric("Correlation", f"{acc['corr']:.2f}", help="1 is perfect.")
+    corr = f"{acc['corr']:.2f}" if acc.get("corr") is not None else "—"
+    c3.metric("Correlation", corr, help="1 is perfect.")
     c4.metric("Checked", f"{acc['scored']:,}")
 
 

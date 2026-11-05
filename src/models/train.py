@@ -19,7 +19,7 @@ from src.utils.config import ROOT, load_config
 from src.utils.logger import get_logger
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
 
 logger = get_logger("train")
 HAR_FEATURES = ["rv_1h", "rv_4h", "rv_24h"]

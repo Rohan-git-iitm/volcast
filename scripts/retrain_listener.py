@@ -14,7 +14,7 @@ lock = threading.Lock()
 
 def run_retrain():
     with open(ROOT / "logs" / "retrain.log", "a") as log:
-        subprocess.run([str(ROOT / "scripts" / "retrain.sh")], stdout=log, stderr=subprocess.STDOUT)
+        subprocess.run([str(ROOT / "scripts" / "retrain.sh")], check=False, stdout=log, stderr=subprocess.STDOUT)
     with lock:
         state["running"] = False
 

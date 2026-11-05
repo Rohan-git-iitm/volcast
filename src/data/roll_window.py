@@ -1,7 +1,7 @@
 """Rolling data window: `set` moves it to the 92 days ending yesterday (UTC); `cleanup` deletes data before it."""
 import shutil
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import yaml
 
@@ -15,7 +15,7 @@ CONFIG = ROOT / "configs" / "config.yaml"
 
 def set_window():
     cfg = yaml.safe_load(CONFIG.read_text())
-    end = datetime.now(timezone.utc).date() - timedelta(days=1)
+    end = datetime.now(UTC).date() - timedelta(days=1)
     start = end - timedelta(days=WINDOW_DAYS - 1)
     cfg["data"]["start_date"], cfg["data"]["end_date"] = start.isoformat(), end.isoformat()
     tmp = CONFIG.with_suffix(".tmp")
