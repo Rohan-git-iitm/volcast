@@ -9,8 +9,8 @@ stages:
       size: 2368
     params:
       configs/config.yaml:
-        data.end_date: '2026-11-03'
-        data.start_date: '2026-08-04'
+        data.end_date: '2026-11-04'
+        data.start_date: '2026-08-05'
         data.symbols:
         - BTCUSDT
         - ETHUSDT
@@ -18,20 +18,20 @@ stages:
     outs:
     - path: data/raw
       hash: md5
-      md5: 3fefea534bff30c2d7f558b8da8deee4.dir
-      size: 4349061987
+      md5: da0cdadce56c57b4c0588706bc8c46da.dir
+      size: 4374280893
       nfiles: 276
   bars:
     cmd: python -m src.data.bars
     deps:
     - path: artifacts/thresholds.json
       hash: md5
-      md5: c5b6acc6cfea563eaf2698df9daa924d
-      size: 77
+      md5: 6293f681a5166314fbc782b009b12267
+      size: 78
     - path: data/raw
       hash: md5
-      md5: 3fefea534bff30c2d7f558b8da8deee4.dir
-      size: 4349061987
+      md5: da0cdadce56c57b4c0588706bc8c46da.dir
+      size: 4374280893
       nfiles: 276
     - path: src/data/bars.py
       hash: md5
@@ -48,20 +48,20 @@ stages:
     outs:
     - path: data/bars
       hash: md5
-      md5: da21f0a917cc531144820fe08788d0b7.dir
-      size: 32763613
+      md5: 2cd720873459d37841532c9973bc91c9.dir
+      size: 32775999
       nfiles: 1104
     - path: metrics/bars.json
       hash: md5
-      md5: f3a3b1faf5d12668a46b72233617b5aa
-      size: 112
+      md5: fb33e7b31a8af87ceedbfd8e1d272f6c
+      size: 106
   thresholds:
     cmd: python -m src.data.thresholds
     deps:
     - path: data/raw
       hash: md5
-      md5: 3fefea534bff30c2d7f558b8da8deee4.dir
-      size: 4349061987
+      md5: da0cdadce56c57b4c0588706bc8c46da.dir
+      size: 4374280893
       nfiles: 276
     - path: src/data/thresholds.py
       hash: md5
@@ -82,15 +82,15 @@ stages:
     outs:
     - path: artifacts/thresholds.json
       hash: md5
-      md5: c5b6acc6cfea563eaf2698df9daa924d
-      size: 77
+      md5: 6293f681a5166314fbc782b009b12267
+      size: 78
   features:
     cmd: python -m src.features.make_features
     deps:
     - path: data/bars
       hash: md5
-      md5: da21f0a917cc531144820fe08788d0b7.dir
-      size: 32763613
+      md5: 2cd720873459d37841532c9973bc91c9.dir
+      size: 32775999
       nfiles: 1104
     - path: src/features/build.py
       hash: md5
@@ -102,14 +102,14 @@ stages:
       size: 1495
     params:
       configs/config.yaml:
-        data.end_date: '2026-11-03'
-        data.start_date: '2026-08-04'
+        data.end_date: '2026-11-04'
+        data.start_date: '2026-08-05'
         model.horizon_minutes: 60
     outs:
     - path: data/features
       hash: md5
-      md5: 0efc4b60b3d9e1a82746ae47575d101f.dir
-      size: 40324070
+      md5: 4fa6445cb4c4018668f3ed6f965d7d47.dir
+      size: 40328130
       nfiles: 1
   train:
     cmd: python -m src.models.train
