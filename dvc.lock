@@ -5,8 +5,8 @@ stages:
     deps:
     - path: src/data/download.py
       hash: md5
-      md5: 80d501ccc55a30a472d047cea65c4fbb
-      size: 2368
+      md5: 8993b65612435f58bd9a54be3d1edb74
+      size: 2748
     params:
       configs/config.yaml:
         data.end_date: '2026-11-04'
@@ -18,9 +18,9 @@ stages:
     outs:
     - path: data/raw
       hash: md5
-      md5: da0cdadce56c57b4c0588706bc8c46da.dir
-      size: 4374280893
-      nfiles: 276
+      md5: b30975b5e24932bdfb9c6f9ffb08b8d6.dir
+      size: 4374282999
+      nfiles: 552
   bars:
     cmd: python -m src.data.bars
     deps:
@@ -30,9 +30,9 @@ stages:
       size: 78
     - path: data/raw
       hash: md5
-      md5: da0cdadce56c57b4c0588706bc8c46da.dir
-      size: 4374280893
-      nfiles: 276
+      md5: b30975b5e24932bdfb9c6f9ffb08b8d6.dir
+      size: 4374282999
+      nfiles: 552
     - path: src/data/bars.py
       hash: md5
       md5: b15ada739c0df284588e37bcc2868972
@@ -53,16 +53,16 @@ stages:
       nfiles: 1104
     - path: metrics/bars.json
       hash: md5
-      md5: fb33e7b31a8af87ceedbfd8e1d272f6c
-      size: 106
+      md5: 59f553c971e9c6320af6eea1be1146c2
+      size: 94
   thresholds:
     cmd: python -m src.data.thresholds
     deps:
     - path: data/raw
       hash: md5
-      md5: da0cdadce56c57b4c0588706bc8c46da.dir
-      size: 4374280893
-      nfiles: 276
+      md5: b30975b5e24932bdfb9c6f9ffb08b8d6.dir
+      size: 4374282999
+      nfiles: 552
     - path: src/data/thresholds.py
       hash: md5
       md5: 92dafccfd24cf14aecaabf9ee6617644
