@@ -1,6 +1,6 @@
 {
-  "days_processed": 0,
-  "trades_processed": 0,
-  "seconds": 0.0,
-  "trades_per_second": 0
+  "days_processed": 15,
+  "trades_processed": 24938642,
+  "seconds": 27.6,
+  "trades_per_second": 902016
 }

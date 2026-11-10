@@ -3,8 +3,8 @@ data:
   - BTCUSDT
   - ETHUSDT
   - SOLUSDT
-  start_date: '2026-08-05'
-  end_date: '2026-11-04'
+  start_date: '2026-08-10'
+  end_date: '2026-11-09'
   base_url: https://data.binance.vision/data/spot/daily/trades
   raw_dir: data/raw
   bars_dir: data/bars
