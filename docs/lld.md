@@ -15,7 +15,7 @@ volcast/
 │   ├── utils/      config.py, logger.py, spark.py
 │   ├── data/       download.py, trades.py, thresholds.py, bars.py, roll_window.py
 │   ├── features/   build.py, make_features.py
-│   ├── models/     train.py, evaluate.py
+│   ├── models/     train.py, evaluate.py, rollback.py
 │   ├── monitoring/ reference.py, pipeline_status.py
 │   └── api/        main.py, store.py
 ├── frontend/       app.py, pages/1_Pipeline_console.py, Dockerfile, requirements.txt
@@ -135,6 +135,8 @@ LightGBM runs also log a BTC prediction plot, feature importance, and the model 
 3. Register it as a new version of `volcast`.
 4. Re-score the current `champion` on the same test set (`champion_qlike`).
 5. Promote (move the `champion` alias, previous champion becomes `previous`) only if the candidate's QLIKE is lower.
+
+**`rollback.py`.** Swaps the `champion` and `previous` aliases, undoing the last promotion.
 
 Output `metrics/evaluate.json`: `candidate`, `candidate_qlike`, `persistence_qlike`, `champion_qlike`, `version`, `promoted`, `reason`.
 
@@ -268,7 +270,7 @@ The user page reruns its data section every 60 seconds. Variables: `BACKEND_URL`
 
 | Script | Trigger | Steps |
 |---|---|---|
-| `refresh.sh` | systemd timer, daily 13:00 IST (`Persistent=true`) | lock → `roll_window set` → `dvc repro download` → `roll_window cleanup` → `dvc commit -f download` → `dvc repro features` → commit → status |
+| `refresh.sh` | systemd timer, daily 13:00 IST (`Persistent=true`) | lock → `roll_window set` → `dvc repro download` → `roll_window cleanup` → `dvc commit -f download` → `dvc repro features` → commit → `dvc gc -w -f` → status |
 | `retrain.sh` | retrain listener | lock → `dvc repro` → if promoted, `docker compose build && up -d` → commit → status |
 | `retrain_listener.py` | cron `@reboot` | HTTP server on 9095; starts `retrain.sh` for a firing `action=retrain` alert, never twice at once, at most once per 24 hours |
 | `simulate_drift.sh <factor>` | manual, for demos | calls `/admin/simulate-drift` |

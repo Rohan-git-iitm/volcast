@@ -19,4 +19,5 @@ if git diff --cached --quiet; then
 else
   git commit -m "Daily data refresh $(date -u +%F)"
 fi
+dvc gc -w -f
 python -m src.monitoring.pipeline_status refresh ok

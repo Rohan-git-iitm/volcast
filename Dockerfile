@@ -9,5 +9,4 @@ COPY configs/ configs/
 COPY src/ src/
 COPY models/champion/ models/champion/
 COPY models/reference.json models/
-COPY models/reference.json models/
 RUN mkdir -p logs

@@ -169,17 +169,16 @@ After about 30 seconds, Alertmanager calls the listener, which runs a real retra
 | Retrain now | `./scripts/retrain.sh` |
 | Run tests | `python -m pytest -v`; with the stack running, `python -m pytest -m e2e -v` |
 | Style check | `ruff check src tests scripts frontend` |
-| Free disk from old cached data | `dvc gc -w -f` |
 
 ### 5.1 Rolling back to the previous model
 
 ```bash
-python -c "from mlflow import MlflowClient; c = MlflowClient(); v = c.get_model_version_by_alias('volcast', 'previous').version; c.set_registered_model_alias('volcast', 'champion', v); print('champion ->', v)"
+python -m src.models.rollback
 dvc repro -f export
 docker compose up -d --build
 ```
 
-This moves the `champion` alias back to the previous version, exports it, and rebuilds the serving containers. The drift reference is not restored automatically (a known limitation), so drift readings describe the newer model's training data until the next promotion.
+This swaps the `champion` and `previous` aliases, exports it, and rebuilds the serving containers. The drift reference is not restored automatically (a known limitation), so drift readings describe the newer model's training data until the next promotion.
 
 ## 6. Troubleshooting
 
