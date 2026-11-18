@@ -89,6 +89,7 @@ Then open `localhost:8501` for forecasts and the pipeline console, and `localhos
 
 | Document | Contents |
 |---|---|
+| [Project report](volcast_report.pdf) | full write-up: architecture, data, models, MLOps lifecycle, testing, live results|
 | [User manual](docs/user_manual.md) | installation, using the pages, demos, operations, troubleshooting |
 | [Architecture](docs/architecture.md) | diagram, components, ports, data flows |
 | [High-level design](docs/hld.md) | requirements and every design decision with its reasoning |
@@ -96,6 +97,7 @@ Then open `localhost:8501` for forecasts and the pipeline console, and `localhos
 | [Experiments](docs/experiments.md) | ablations and the drift-metric study |
 | [Testing](docs/testing.md) | test plan, test cases, test report |
 | [AI disclosure](AI_DISCLOSURE.md) | AI tools used and how |
+
 
 ## Tech stack
 
