@@ -6,6 +6,8 @@ VolCast forecasts how much the prices of Bitcoin, Ethereum and Solana are likely
 
 Built for the AI Operations course at IIT Madras by Rohan Sai P. (DA24B049).
 
+**Explanation video:** [Watch on Google Drive](https://drive.google.com/file/d/16buFWZoNJxrqOGpBB76ihNKHchgGCSfH/view?usp=drive_link)
+
 ## What it does
 
 - **Forecasts** next-hour realized volatility per coin every minute, shown as an expected % and dollar move with a risk band (Calm, Normal, Elevated, Extreme)
