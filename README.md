@@ -89,6 +89,7 @@ Then open `localhost:8501` for forecasts and the pipeline console, and `localhos
 
 | Document | Contents |
 |---|---|
+| [Project report](docs/report/volcast_report.pdf) | full write-up: architecture, data, models, MLOps lifecycle, testing, live results ([LaTeX source](docs/report/volcast_report.tex)) |
 | [Project report](volcast_report.pdf) | full write-up: architecture, data, models, MLOps lifecycle, testing, live results|
 | [User manual](docs/user_manual.md) | installation, using the pages, demos, operations, troubleshooting |
 | [Architecture](docs/architecture.md) | diagram, components, ports, data flows |

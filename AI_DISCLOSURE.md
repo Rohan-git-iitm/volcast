@@ -18,7 +18,7 @@ Claude.
 
 **5. Research.** I used Claude to research methods before choosing them. For model selection: forecasting baselines (persistence, and the HAR model, adapted here to 1-hour, 4-hour and 24-hour windows), loss functions for comparing volatility forecasts (QLIKE against squared-error losses), and gradient-boosted trees trained with a gamma objective, which matches QLIKE. For feature engineering: realized volatility over several windows, intraday and weekly seasonality, activity measures such as volume and trade counts, and large-trade features, which I then tested and dropped (experiment E1). For monitoring: on my request it searched the web to survey drift-detection methods (PSI, KS, Jensen-Shannon, Wasserstein, PCA reconstruction, domain classifiers, range checks, Page-Hinkley, ADWIN) with sources, which I used to choose the drift metric. In each case I made the final choice after testing the options on the data.
 
-**6. Documentation.** Claude drafted the documents in `docs/` and the README from the work done and the decisions recorded during the project. I reviewed them, had them simplified where needed, and checked technical details against the code.
+**6. Documentation.** Claude drafted the documents in `docs/`, the README and the project report from the work done and the decisions recorded during the project. I reviewed them, had them simplified where needed, and checked technical details against the code.
 
 ## My decisions and contributions
 

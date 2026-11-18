@@ -65,7 +65,7 @@ volcast/
 3. If the zip exists and its SHA-256 matches, mark it verified; otherwise download to `name.zip.part`, verify, and rename to `name.zip` (atomic).
 4. Write `name.zip.ok` containing the size.
 
-Days are downloaded in parallel threads. Failures are logged per day; the stage exits non-zero at the end with the list of failed days.
+Days are downloaded one after another. Failures are logged per day; the stage exits non-zero at the end with the list of failed days.
 
 **`thresholds.py`.** For each coin, computes the quote-value threshold above which a trade counts as large: the 99th percentile over the first 7 days of raw trades (Spark). Output: `artifacts/thresholds.json`, e.g. `{"BTCUSDT": 6826.63, ...}`.
 

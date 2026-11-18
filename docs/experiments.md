@@ -88,4 +88,4 @@ Feature importance (gain) in the absolute variant also ranked all three large-tr
 
 **Adopted:** per feature, the training percentile of the latest value, and the share of the last 24 hours outside the training 1st to 99th percentile (2% expected). On the same day, BTC volatility features sat at the 65th to 92nd percentile with out-of-range shares near 0, i.e. no drift.
 
-**Decision:** percentile and out-of-range share for inputs; sustained live RMSPE against test RMSPE for performance.
+**Decision:** percentile and out-of-range share for inputs; sustained live QLIKE above 1.5 times the champion's test QLIKE for performance.
